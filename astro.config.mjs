@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
+import react from '@astrojs/react';
 import sanity from '@sanity/astro';
 import { schemaTypes } from './sanity/schemas/index.ts';
 
@@ -13,6 +14,7 @@ if (!sanityProjectId) {
 export default defineConfig({
   integrations: [
     tailwind(),
+    react(),
 
     sanity({
       projectId: sanityProjectId,
