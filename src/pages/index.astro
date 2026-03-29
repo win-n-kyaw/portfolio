@@ -14,7 +14,7 @@ import Contact from '../components/Contact.astro';
 import Footer from '../components/Footer.astro';
 import FloatingCTA from '../components/FloatingCTA.astro';
 
-import { sanityFetch, urlFor } from '../lib/sanity';
+import { sanityFetch, urlFor, fileUrl } from '../lib/sanity';
 import {
   siteSettings as fallbackSettings,
   aboutData as fallbackAbout,
@@ -38,10 +38,15 @@ const experiences =
     `*[_type == "experience"] | order(startDate desc)`
   )) || fallbackExperience;
 
-const projects =
-  (await sanityFetch<typeof fallbackProjects>(
+const projectsRaw =
+  (await sanityFetch<any[]>(
     `*[_type == "project"] | order(order asc)`
   )) || fallbackProjects;
+
+const projects = projectsRaw.map((p: any) => ({
+  ...p,
+  imageUrl: p.image ? urlFor(p.image).width(600).url() : (p.imageUrl || ''),
+}));
 
 const skills =
   (await sanityFetch<typeof fallbackSkills>(
@@ -54,6 +59,11 @@ const blog =
   )) || fallbackBlog;
 
 const certifications = fallbackCerts;
+
+const resumesRaw = (await sanityFetch<any[]>(
+  `*[_type == "resume"] | order(order asc) { label, "fileUrl": file.asset->url }`
+)) || [];
+const resumes = resumesRaw.map((r: any) => ({ label: r.label, url: r.fileUrl }));
 ---
 
 <Layout title={`${settings.title} — ${settings.role}`}>
@@ -66,6 +76,7 @@ const certifications = fallbackCerts;
       email={settings.email}
       github={settings.github}
       linkedin={settings.linkedin}
+      resumes={resumes}
     />
     <About heading={about.heading} bio={about.bio} imageUrl={aboutImageUrl} />
     <Certifications certifications={certifications} />
@@ -84,116 +95,3 @@ const certifications = fallbackCerts;
   <FloatingCTA />
   <Footer name={settings.title} />
 </Layout>
-
-<!-- PDF Resume Generation Script -->
-<script>
-  async function generateResumePDF() {
-    const { jsPDF } = await import('jspdf');
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    let y = 20;
-
-    // Gather data from DOM
-    const name = document.querySelector('#hero h1')?.textContent?.replace('.', '') || 'Win Naing Kyaw';
-    const role = document.querySelector('#hero h2')?.textContent || '';
-
-    // Header
-    doc.setFontSize(24);
-    doc.setFont('helvetica', 'bold');
-    doc.text(name, pageWidth / 2, y, { align: 'center' });
-    y += 8;
-
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100);
-    doc.text(role, pageWidth / 2, y, { align: 'center' });
-    y += 6;
-    doc.text('winnkyawhc@hotmail.com | (+66) 653-899-530 | Chiang Mai, Thailand', pageWidth / 2, y, { align: 'center' });
-    y += 4;
-    doc.text('linkedin.com/in/win-naing-kyaw | gitlab.com/winnkyaw', pageWidth / 2, y, { align: 'center' });
-    y += 10;
-
-    // Divider
-    doc.setDrawColor(99, 102, 241);
-    doc.setLineWidth(0.5);
-    doc.line(20, y, pageWidth - 20, y);
-    y += 8;
-
-    // About Section
-    doc.setTextColor(0);
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('About', 20, y);
-    y += 6;
-
-    const aboutEl = document.querySelector('#about');
-    const aboutText = aboutEl?.querySelectorAll('p');
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    aboutText?.forEach((p) => {
-      const lines = doc.splitTextToSize(p.textContent || '', pageWidth - 40);
-      if (y + lines.length * 4 > 280) { doc.addPage(); y = 20; }
-      doc.text(lines, 20, y);
-      y += lines.length * 4 + 3;
-    });
-
-    y += 4;
-
-    // Experience Section
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    if (y > 260) { doc.addPage(); y = 20; }
-    doc.text('Experience', 20, y);
-    y += 7;
-
-    const experienceCards = document.querySelectorAll('#experience .card');
-    experienceCards.forEach((card) => {
-      if (y > 250) { doc.addPage(); y = 20; }
-      const title = card.querySelector('h3')?.textContent || '';
-      const company = card.querySelector('.text-primary-600, .dark\\:text-primary-400')?.textContent || '';
-      const desc = card.querySelector('p')?.textContent || '';
-
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.text(title, 20, y);
-      y += 5;
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'italic');
-      doc.setTextColor(79, 70, 229);
-      doc.text(company, 20, y);
-      y += 5;
-      doc.setTextColor(0);
-      doc.setFont('helvetica', 'normal');
-      const descLines = doc.splitTextToSize(desc, pageWidth - 40);
-      doc.text(descLines, 20, y);
-      y += descLines.length * 4 + 6;
-    });
-
-    // Skills Section
-    if (y > 240) { doc.addPage(); y = 20; }
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Skills', 20, y);
-    y += 7;
-
-    const skillCards = document.querySelectorAll('#skills .card');
-    doc.setFontSize(9);
-    skillCards.forEach((card) => {
-      if (y > 270) { doc.addPage(); y = 20; }
-      const category = card.querySelector('h3')?.textContent || '';
-      const skillNames: string[] = [];
-      card.querySelectorAll('.font-medium').forEach((el) => skillNames.push(el.textContent || ''));
-
-      doc.setFont('helvetica', 'bold');
-      doc.text(category + ': ', 20, y);
-      doc.setFont('helvetica', 'normal');
-      const skillLine = doc.splitTextToSize(skillNames.join(', '), pageWidth - 40);
-      doc.text(skillLine, 20, y + 4);
-      y += 4 + skillLine.length * 4 + 3;
-    });
-
-    doc.save('Win_Naing_Kyaw_Resume.pdf');
-  }
-
-  document.getElementById('download-resume-btn')?.addEventListener('click', generateResumePDF);
-</script>

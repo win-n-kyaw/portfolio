@@ -20,6 +20,13 @@ export function urlFor(source: any) {
   return builder.image(source);
 }
 
+export function fileUrl(ref: string): string {
+  if (!projectId) return '';
+  // Sanity file asset ref format: file-{id}-{extension}
+  const [, id, ext] = ref.split('-');
+  return `https://cdn.sanity.io/files/${projectId}/${dataset}/${id}.${ext}`;
+}
+
 export async function sanityFetch<T>(query: string, params = {}): Promise<T | null> {
   if (!sanityClient) return null;
   try {
