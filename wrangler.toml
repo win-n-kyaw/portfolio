@@ -1,8 +1,12 @@
 name = "portfolio"
 pages_build_output_dir = "dist"
+compatibility_date = "2026-03-29"
 
 [env.production]
 name = "portfolio"
 
 [env.preview]
 name = "portfolio-preview"
+
+[assets]
+directory = "./dist"
