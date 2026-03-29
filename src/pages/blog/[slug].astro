@@ -1,0 +1,81 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+import { sanityFetch } from '../../lib/sanity';
+import { blogData as fallbackBlog, siteSettings } from '../../data/fallback';
+
+export async function getStaticPaths() {
+  const posts =
+    (await sanityFetch<Array<{ slug: string }>>(
+      `*[_type == "blogPost"]{ "slug": slug.current }`
+    )) || [];
+
+  // Merge with fallback slugs
+  const fallbackSlugs = fallbackBlog.map((p) => ({ slug: p.slug }));
+  const allSlugs = [...new Set([...posts.map((p) => p.slug), ...fallbackSlugs.map((p) => p.slug)])];
+
+  return allSlugs.map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+
+// Try Sanity first, then fallback
+let post = await sanityFetch<any>(
+  `*[_type == "blogPost" && slug.current == $slug][0]{ title, "slug": slug.current, excerpt, publishedAt, body, tags }`,
+  { slug }
+);
+
+if (!post) {
+  const fb = fallbackBlog.find((p) => p.slug === slug);
+  if (fb) post = fb;
+}
+
+if (!post) {
+  return Astro.redirect('/blog');
+}
+
+function formatDate(date: string) {
+  return new Date(date).toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+---
+
+<Layout title={`${post.title} — ${siteSettings.title}`}>
+  <Navbar />
+  <main class="pt-24 pb-20">
+    <article class="section-container max-w-3xl">
+      <a href="/blog" class="inline-flex items-center gap-1 text-sm text-primary-500 hover:underline mb-8">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        All Posts
+      </a>
+
+      <header class="mb-10">
+        <time class="text-sm text-gray-500 dark:text-gray-500">{formatDate(post.publishedAt)}</time>
+        <h1 class="text-4xl md:text-5xl font-bold mt-2 mb-4">{post.title}</h1>
+        {post.tags && (
+          <div class="flex flex-wrap gap-2">
+            {post.tags.map((tag: string) => <span class="tag">{tag}</span>)}
+          </div>
+        )}
+      </header>
+
+      <div class="prose prose-lg dark:prose-invert max-w-none">
+        {typeof post.body === 'string' ? (
+          post.body.split('\n\n').map((p: string) => <p>{p}</p>)
+        ) : (
+          <p class="text-gray-500 dark:text-gray-500 italic">
+            Rich text content from Sanity will render here when connected.
+          </p>
+        )}
+      </div>
+    </article>
+  </main>
+  <Footer name={siteSettings.title} />
+</Layout>

@@ -1,0 +1,19 @@
+---
+interface Props {
+  name: string;
+}
+
+const { name } = Astro.props;
+const year = new Date().getFullYear();
+---
+
+<footer class="py-8 border-t border-gray-200 dark:border-gray-800">
+  <div class="section-container text-center">
+    <p class="text-sm text-gray-500 dark:text-gray-500">
+      &copy; {year} {name}. Built with
+      <a href="https://astro.build" target="_blank" rel="noopener" class="text-primary-500 hover:underline">Astro</a>
+      &
+      <a href="https://sanity.io" target="_blank" rel="noopener" class="text-primary-500 hover:underline">Sanity</a>.
+    </p>
+  </div>
+</footer>

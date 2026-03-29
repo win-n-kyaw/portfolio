@@ -1,0 +1,35 @@
+---
+interface Certification {
+  name: string;
+  date: string;
+}
+
+interface Props {
+  certifications: Certification[];
+}
+
+const { certifications } = Astro.props;
+---
+
+<section id="certifications" class="section-padding">
+  <div class="section-container">
+    <h2 class="section-title">Certifications</h2>
+    <div class="h-1 w-16 bg-primary-500 rounded mb-12"></div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {certifications.map((cert) => (
+        <div class="card flex items-start gap-4">
+          <div class="p-3 rounded-lg bg-primary-100 dark:bg-primary-900/30 shrink-0">
+            <svg class="w-6 h-6 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-semibold">{cert.name}</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-500">{cert.date}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

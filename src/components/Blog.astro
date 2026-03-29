@@ -1,0 +1,64 @@
+---
+interface BlogPost {
+  _id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  publishedAt: string;
+  tags: string[];
+}
+
+interface Props {
+  posts: BlogPost[];
+}
+
+const { posts } = Astro.props;
+
+function formatDate(date: string) {
+  return new Date(date).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+---
+
+<section id="blog" class="section-padding">
+  <div class="section-container">
+    <h2 class="section-title">Blog & Articles</h2>
+    <div class="h-1 w-16 bg-primary-500 rounded mb-12"></div>
+
+    {posts.length === 0 ? (
+      <p class="text-gray-500 dark:text-gray-500 text-center py-12">
+        Articles coming soon. Connect Sanity CMS to start publishing.
+      </p>
+    ) : (
+      <div class="grid md:grid-cols-2 gap-8">
+        {posts.map((post) => (
+          <a href={`/blog/${post.slug}`} class="card group block">
+            <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-500 mb-3">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <time>{formatDate(post.publishedAt)}</time>
+            </div>
+
+            <h3 class="text-xl font-semibold mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+              {post.title}
+            </h3>
+
+            <p class="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+              {post.excerpt}
+            </p>
+
+            <div class="flex flex-wrap gap-2">
+              {post.tags?.map((tag) => (
+                <span class="tag">{tag}</span>
+              ))}
+            </div>
+          </a>
+        ))}
+      </div>
+    )}
+  </div>
+</section>

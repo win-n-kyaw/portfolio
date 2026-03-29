@@ -1,0 +1,197 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Hero from '../components/Hero.astro';
+import About from '../components/About.astro';
+import Skills from '../components/Skills.astro';
+import Certifications from '../components/Certifications.astro';
+import Experience from '../components/Experience.astro';
+import Projects from '../components/Projects.astro';
+import Blog from '../components/Blog.astro';
+import Contact from '../components/Contact.astro';
+import Footer from '../components/Footer.astro';
+import FloatingCTA from '../components/FloatingCTA.astro';
+
+import { sanityFetch, urlFor } from '../lib/sanity';
+import {
+  siteSettings as fallbackSettings,
+  aboutData as fallbackAbout,
+  experienceData as fallbackExperience,
+  projectsData as fallbackProjects,
+  skillsData as fallbackSkills,
+  certificationsData as fallbackCerts,
+  blogData as fallbackBlog,
+} from '../data/fallback';
+
+// Fetch from Sanity or fall back to local data
+const settings =
+  (await sanityFetch<typeof fallbackSettings>(`*[_type == "siteSettings"][0]`)) || fallbackSettings;
+
+const aboutRaw = await sanityFetch<any>(`*[_type == "about"][0]`);
+const about = aboutRaw || fallbackAbout;
+const aboutImageUrl = aboutRaw?.image ? urlFor(aboutRaw.image).width(400).url() : (fallbackAbout.imageUrl || '');
+
+const experiences =
+  (await sanityFetch<typeof fallbackExperience>(
+    `*[_type == "experience"] | order(startDate desc)`
+  )) || fallbackExperience;
+
+const projects =
+  (await sanityFetch<typeof fallbackProjects>(
+    `*[_type == "project"] | order(order asc)`
+  )) || fallbackProjects;
+
+const skills =
+  (await sanityFetch<typeof fallbackSkills>(
+    `*[_type == "skill"] | order(category asc, proficiency desc)`
+  )) || fallbackSkills;
+
+const blog =
+  (await sanityFetch<typeof fallbackBlog>(
+    `*[_type == "blogPost"] | order(publishedAt desc) { _id, title, "slug": slug.current, excerpt, publishedAt, tags }`
+  )) || fallbackBlog;
+
+const certifications = fallbackCerts;
+---
+
+<Layout title={`${settings.title} — ${settings.role}`}>
+  <Navbar />
+  <main>
+    <Hero
+      name={settings.title}
+      role={settings.role}
+      tagline={settings.tagline}
+      email={settings.email}
+      github={settings.github}
+      linkedin={settings.linkedin}
+    />
+    <About heading={about.heading} bio={about.bio} imageUrl={aboutImageUrl} />
+    <Certifications certifications={certifications} />
+    <Skills skills={skills} />
+    <Experience experiences={experiences} />
+    <Projects projects={projects} />
+    <Blog posts={blog} />
+    <Contact
+      email={settings.email}
+      phone={settings.phone}
+      location={settings.location}
+      linkedin={settings.linkedin}
+      github={settings.github}
+    />
+  </main>
+  <FloatingCTA />
+  <Footer name={settings.title} />
+</Layout>
+
+<!-- PDF Resume Generation Script -->
+<script>
+  async function generateResumePDF() {
+    const { jsPDF } = await import('jspdf');
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let y = 20;
+
+    // Gather data from DOM
+    const name = document.querySelector('#hero h1')?.textContent?.replace('.', '') || 'Win Naing Kyaw';
+    const role = document.querySelector('#hero h2')?.textContent || '';
+
+    // Header
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.text(name, pageWidth / 2, y, { align: 'center' });
+    y += 8;
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100);
+    doc.text(role, pageWidth / 2, y, { align: 'center' });
+    y += 6;
+    doc.text('winnkyawhc@hotmail.com | (+66) 653-899-530 | Chiang Mai, Thailand', pageWidth / 2, y, { align: 'center' });
+    y += 4;
+    doc.text('linkedin.com/in/win-naing-kyaw | gitlab.com/winnkyaw', pageWidth / 2, y, { align: 'center' });
+    y += 10;
+
+    // Divider
+    doc.setDrawColor(99, 102, 241);
+    doc.setLineWidth(0.5);
+    doc.line(20, y, pageWidth - 20, y);
+    y += 8;
+
+    // About Section
+    doc.setTextColor(0);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('About', 20, y);
+    y += 6;
+
+    const aboutEl = document.querySelector('#about');
+    const aboutText = aboutEl?.querySelectorAll('p');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    aboutText?.forEach((p) => {
+      const lines = doc.splitTextToSize(p.textContent || '', pageWidth - 40);
+      if (y + lines.length * 4 > 280) { doc.addPage(); y = 20; }
+      doc.text(lines, 20, y);
+      y += lines.length * 4 + 3;
+    });
+
+    y += 4;
+
+    // Experience Section
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    if (y > 260) { doc.addPage(); y = 20; }
+    doc.text('Experience', 20, y);
+    y += 7;
+
+    const experienceCards = document.querySelectorAll('#experience .card');
+    experienceCards.forEach((card) => {
+      if (y > 250) { doc.addPage(); y = 20; }
+      const title = card.querySelector('h3')?.textContent || '';
+      const company = card.querySelector('.text-primary-600, .dark\\:text-primary-400')?.textContent || '';
+      const desc = card.querySelector('p')?.textContent || '';
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text(title, 20, y);
+      y += 5;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(79, 70, 229);
+      doc.text(company, 20, y);
+      y += 5;
+      doc.setTextColor(0);
+      doc.setFont('helvetica', 'normal');
+      const descLines = doc.splitTextToSize(desc, pageWidth - 40);
+      doc.text(descLines, 20, y);
+      y += descLines.length * 4 + 6;
+    });
+
+    // Skills Section
+    if (y > 240) { doc.addPage(); y = 20; }
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Skills', 20, y);
+    y += 7;
+
+    const skillCards = document.querySelectorAll('#skills .card');
+    doc.setFontSize(9);
+    skillCards.forEach((card) => {
+      if (y > 270) { doc.addPage(); y = 20; }
+      const category = card.querySelector('h3')?.textContent || '';
+      const skillNames: string[] = [];
+      card.querySelectorAll('.font-medium').forEach((el) => skillNames.push(el.textContent || ''));
+
+      doc.setFont('helvetica', 'bold');
+      doc.text(category + ': ', 20, y);
+      doc.setFont('helvetica', 'normal');
+      const skillLine = doc.splitTextToSize(skillNames.join(', '), pageWidth - 40);
+      doc.text(skillLine, 20, y + 4);
+      y += 4 + skillLine.length * 4 + 3;
+    });
+
+    doc.save('Win_Naing_Kyaw_Resume.pdf');
+  }
+
+  document.getElementById('download-resume-btn')?.addEventListener('click', generateResumePDF);
+</script>
