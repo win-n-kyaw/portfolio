@@ -53,10 +53,9 @@ const { name, role, tagline, email, github, linkedin, resumes = [] } = Astro.pro
           <div id="resume-menu" class="absolute left-0 mt-2 w-56 rounded-lg bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black/5 dark:ring-white/10 py-1 opacity-0 invisible translate-y-1 transition-all duration-200 z-50">
             {resumes.map((r) => (
               <a
-                href={r.url}
+                href={`${r.url}?dl=${encodeURIComponent(r.label + '.pdf')}`}
                 target="_blank"
                 rel="noopener"
-                download
                 class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
               >
                 <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

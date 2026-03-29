@@ -14,7 +14,7 @@ import Contact from '../components/Contact.astro';
 import Footer from '../components/Footer.astro';
 import FloatingCTA from '../components/FloatingCTA.astro';
 
-import { sanityFetch, urlFor } from '../lib/sanity';
+import { sanityFetch, urlFor, fileUrl } from '../lib/sanity';
 import {
   siteSettings as fallbackSettings,
   aboutData as fallbackAbout,
@@ -60,10 +60,19 @@ const blog =
 
 const certifications = fallbackCerts;
 
-const resumes = [
-  settings.resumeCloudEngUrl && { label: 'Cloud Engineering', url: settings.resumeCloudEngUrl },
-  settings.resumeSTEMUrl && { label: 'STEM Educator', url: settings.resumeSTEMUrl },
-].filter(Boolean) as { label: string; url: string }[];
+// Fetch dedicated resume documents (preferred) with fallback to siteSettings file fields
+const resumeDocs = await sanityFetch<any[]>(
+  `*[_type == "resume"] | order(order asc) { label, "fileRef": file.asset->url }`
+);
+
+const resumes: { label: string; url: string }[] = resumeDocs?.length
+  ? resumeDocs
+      .filter((r: any) => r.label && r.fileRef)
+      .map((r: any) => ({ label: r.label, url: r.fileRef }))
+  : [
+      settings.resumeCloudEngUrl && { label: 'Cloud Engineering', url: settings.resumeCloudEngUrl },
+      settings.resumeSTEMUrl && { label: 'STEM Educator', url: settings.resumeSTEMUrl },
+    ].filter(Boolean) as { label: string; url: string }[];
 ---
 
 <Layout title={`${settings.title} — ${settings.role}`}>
