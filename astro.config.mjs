@@ -1,17 +1,20 @@
 import { defineConfig } from 'astro/config';
+import { loadEnv } from 'vite';
 import tailwind from '@astrojs/tailwind';
 import react from '@astrojs/react';
+import cloudflare from '@astrojs/cloudflare';
 import sanity from '@sanity/astro';
-import { schemaTypes } from './sanity/schemas/index.ts';
 
-const sanityProjectId = process.env.PUBLIC_SANITY_PROJECT_ID;
-const sanityDataset = process.env.PUBLIC_SANITY_DATASET ?? 'production';
+const env = loadEnv(process.env.NODE_ENV ?? 'production', process.cwd(), '');
+const sanityProjectId = env.PUBLIC_SANITY_PROJECT_ID;
+const sanityDataset = env.PUBLIC_SANITY_DATASET ?? 'production';
 
 if (!sanityProjectId) {
   throw new Error('Missing required env var: PUBLIC_SANITY_PROJECT_ID');
 }
 
 export default defineConfig({
+  adapter: cloudflare(),
   integrations: [
     tailwind(),
     react(),
@@ -19,12 +22,8 @@ export default defineConfig({
     sanity({
       projectId: sanityProjectId,
       dataset: sanityDataset,
-      useCdn: true,
-      studioBasePath: '/studio',
-      schema: {
-        types: schemaTypes,
-      },
+      useCdn: false,
     }),
   ],
-  output: 'static',
+  output: 'hybrid',
 });

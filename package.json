@@ -9,20 +9,19 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "^11.2.0",
     "@astrojs/react": "^5.0.2",
     "@astrojs/tailwind": "^5.1.0",
     "@sanity/astro": "^3.3.1",
     "@sanity/client": "^7.20.0",
-    "@sanity/code-input": "^7.0.12",
     "@sanity/image-url": "^1.0.2",
-    "@sanity/vision": "^5.18.0",
     "astro": "^4.8.0",
     "jspdf": "^2.5.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "react-is": "^19.2.4",
-    "sanity": "^5.18.0",
-    "styled-components": "^6.3.12",
     "tailwindcss": "^3.4.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.78.0"
   }
 }

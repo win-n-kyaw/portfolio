@@ -17,10 +17,15 @@ interface Props {
 
 const { experiences } = Astro.props;
 
-function formatDate(date: string | null, current: boolean) {
+function formatDate(date: string | null | undefined, current: boolean) {
   if (current) return 'Present';
   if (!date) return '';
-  const d = new Date(date + '-01');
+  // Handle YYYY-MM (fallback), YYYY-MM-DD (Sanity date), and ISO datetime formats
+  const cleaned = date.includes('T') ? date.split('T')[0] : date;
+  const parts = cleaned.split('-');
+  const normalized = parts.length === 2 ? `${cleaned}-01` : cleaned;
+  const d = new Date(normalized + 'T00:00:00');
+  if (isNaN(d.getTime())) return date;
   return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 ---

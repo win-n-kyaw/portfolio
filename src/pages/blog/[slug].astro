@@ -1,22 +1,11 @@
 ---
+export const prerender = false;
+
 import Layout from '../../layouts/Layout.astro';
 import Navbar from '../../components/Navbar.astro';
 import Footer from '../../components/Footer.astro';
 import { sanityFetch } from '../../lib/sanity';
 import { blogData as fallbackBlog, siteSettings } from '../../data/fallback';
-
-export async function getStaticPaths() {
-  const posts =
-    (await sanityFetch<Array<{ slug: string }>>(
-      `*[_type == "blogPost"]{ "slug": slug.current }`
-    )) || [];
-
-  // Merge with fallback slugs
-  const fallbackSlugs = fallbackBlog.map((p) => ({ slug: p.slug }));
-  const allSlugs = [...new Set([...posts.map((p) => p.slug), ...fallbackSlugs.map((p) => p.slug)])];
-
-  return allSlugs.map((slug) => ({ params: { slug } }));
-}
 
 const { slug } = Astro.params;
 
