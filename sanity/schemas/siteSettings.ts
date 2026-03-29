@@ -14,7 +14,18 @@ export default defineType({
     defineField({ name: 'github', title: 'GitHub URL', type: 'url' }),
     defineField({ name: 'linkedin', title: 'LinkedIn URL', type: 'url' }),
     defineField({ name: 'twitter', title: 'Twitter / X URL', type: 'url' }),
-    defineField({ name: 'resumePdf', title: 'Resume PDF (optional upload)', type: 'file' }),
+    defineField({
+      name: 'resumeCloudEng',
+      title: 'Resume — Cloud Engineering',
+      type: 'file',
+      options: { accept: '.pdf' },
+    }),
+    defineField({
+      name: 'resumeSTEM',
+      title: 'Resume — STEM Educator',
+      type: 'file',
+      options: { accept: '.pdf' },
+    }),
   ],
   preview: { select: { title: 'title', subtitle: 'role' } },
 });

@@ -14,7 +14,7 @@ import Contact from '../components/Contact.astro';
 import Footer from '../components/Footer.astro';
 import FloatingCTA from '../components/FloatingCTA.astro';
 
-import { sanityFetch, urlFor, fileUrl } from '../lib/sanity';
+import { sanityFetch, urlFor } from '../lib/sanity';
 import {
   siteSettings as fallbackSettings,
   aboutData as fallbackAbout,
@@ -27,7 +27,7 @@ import {
 
 // Fetch from Sanity or fall back to local data
 const settings =
-  (await sanityFetch<typeof fallbackSettings>(`*[_type == "siteSettings"][0]`)) || fallbackSettings;
+  (await sanityFetch<any>(`*[_type == "siteSettings"][0]{ ..., "resumeCloudEngUrl": resumeCloudEng.asset->url, "resumeSTEMUrl": resumeSTEM.asset->url }`)) || fallbackSettings;
 
 const aboutRaw = await sanityFetch<any>(`*[_type == "about"][0]`);
 const about = aboutRaw || fallbackAbout;
@@ -60,10 +60,10 @@ const blog =
 
 const certifications = fallbackCerts;
 
-const resumesRaw = (await sanityFetch<any[]>(
-  `*[_type == "resume"] | order(order asc) { label, "fileUrl": file.asset->url }`
-)) || [];
-const resumes = resumesRaw.map((r: any) => ({ label: r.label, url: r.fileUrl }));
+const resumes = [
+  settings.resumeCloudEngUrl && { label: 'Cloud Engineering', url: settings.resumeCloudEngUrl },
+  settings.resumeSTEMUrl && { label: 'STEM Educator', url: settings.resumeSTEMUrl },
+].filter(Boolean) as { label: string; url: string }[];
 ---
 
 <Layout title={`${settings.title} — ${settings.role}`}>
