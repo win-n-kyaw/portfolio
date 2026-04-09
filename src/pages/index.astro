@@ -10,9 +10,7 @@ import Certifications from '../components/Certifications.astro';
 import Experience from '../components/Experience.astro';
 import Projects from '../components/Projects.astro';
 import Blog from '../components/Blog.astro';
-import Contact from '../components/Contact.astro';
 import Footer from '../components/Footer.astro';
-import FloatingCTA from '../components/FloatingCTA.astro';
 
 import { sanityFetch, urlFor, fileUrl } from '../lib/sanity';
 import {
@@ -93,14 +91,6 @@ const resumes: { label: string; url: string }[] = resumeDocs?.length
     <Experience experiences={experiences} />
     <Projects projects={projects} />
     <Blog posts={blog} />
-    <Contact
-      email={settings.email}
-      phone={settings.phone}
-      location={settings.location}
-      linkedin={settings.linkedin}
-      github={settings.github}
-    />
   </main>
-  <FloatingCTA />
   <Footer name={settings.title} />
 </Layout>

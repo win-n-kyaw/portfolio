@@ -34,6 +34,87 @@ const { title, description = 'Cloud Solution Architect & EdTech Consultant — P
     </script>
   </head>
   <body class="min-h-screen">
+    <div id="sakura-container" class="fixed inset-0 pointer-events-none z-50 overflow-hidden" aria-hidden="true"></div>
     <slot />
+
+    <style>
+      .sakura-petal {
+        position: absolute;
+        top: -40px;
+        width: 12px;
+        height: 12px;
+        background: radial-gradient(ellipse at center, #fbb6ce 0%, #f9a8d4 40%, transparent 70%);
+        border-radius: 50% 0 50% 50%;
+        opacity: 0;
+        animation: sakura-fall linear forwards;
+      }
+      .sakura-petal::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(ellipse at center, #fbcfe8 0%, #f9a8d4 50%, transparent 70%);
+        border-radius: 0 50% 50% 50%;
+        transform: rotate(45deg) translate(2px, -2px);
+      }
+      @keyframes sakura-fall {
+        0% {
+          opacity: 0;
+          transform: translateX(0) rotate(0deg) scale(0.8);
+        }
+        10% {
+          opacity: 0.8;
+        }
+        90% {
+          opacity: 0.6;
+        }
+        100% {
+          opacity: 0;
+          transform: translateX(var(--drift)) rotate(var(--spin)) scale(0.4);
+          top: 105vh;
+        }
+      }
+    </style>
+
+    <script>
+      const container = document.getElementById('sakura-container');
+      const PETAL_COUNT = 15;
+      const INTERVAL = 800;
+
+      function createPetal() {
+        if (!container) return;
+        const petal = document.createElement('div');
+        petal.className = 'sakura-petal';
+        const size = 8 + Math.random() * 12;
+        const left = Math.random() * 100;
+        const duration = 6 + Math.random() * 6;
+        const drift = (Math.random() - 0.5) * 200;
+        const spin = 360 + Math.random() * 360;
+
+        petal.style.left = `${left}%`;
+        petal.style.width = `${size}px`;
+        petal.style.height = `${size}px`;
+        petal.style.setProperty('--drift', `${drift}px`);
+        petal.style.setProperty('--spin', `${spin}deg`);
+        petal.style.animationDuration = `${duration}s`;
+        petal.style.animationDelay = `${Math.random() * 0.5}s`;
+
+        container.appendChild(petal);
+        setTimeout(() => petal.remove(), (duration + 1) * 1000);
+      }
+
+      let created = 0;
+      const timer = setInterval(() => {
+        createPetal();
+        created++;
+        if (created >= PETAL_COUNT) {
+          clearInterval(timer);
+          // Continue with fewer petals for ambient effect
+          setInterval(createPetal, 2000);
+        }
+      }, INTERVAL);
+    </script>
   </body>
 </html>
