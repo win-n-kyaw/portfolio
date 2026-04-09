@@ -43,55 +43,70 @@ const { title, description = 'Cloud Solution Architect & EdTech Consultant — P
         top: -40px;
         width: 12px;
         height: 12px;
-        background: radial-gradient(ellipse at center, #fbb6ce 0%, #f9a8d4 40%, transparent 70%);
-        border-radius: 50% 0 50% 50%;
         opacity: 0;
         animation: sakura-fall linear forwards;
+      }
+      .sakura-petal::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(ellipse at 30% 30%, #fbb6ce 0%, #f9a8d4 50%, transparent 75%);
+        border-radius: 50% 0 50% 50%;
       }
       .sakura-petal::before {
         content: '';
         position: absolute;
-        top: 0;
-        left: 0;
         width: 100%;
         height: 100%;
-        background: radial-gradient(ellipse at center, #fbcfe8 0%, #f9a8d4 50%, transparent 70%);
+        background: radial-gradient(ellipse at 70% 30%, #fce7f3 0%, #fbcfe8 50%, transparent 75%);
         border-radius: 0 50% 50% 50%;
-        transform: rotate(45deg) translate(2px, -2px);
+        transform: rotate(90deg) translate(1px, -1px);
       }
       @keyframes sakura-fall {
         0% {
           opacity: 0;
-          transform: translateX(0) rotate(0deg) scale(0.8);
+          transform: translateX(0) translateY(0) rotate(0deg) scale(0.6);
         }
-        10% {
-          opacity: 0.8;
+        8% {
+          opacity: 0.9;
         }
-        90% {
-          opacity: 0.6;
+        25% {
+          transform: translateX(calc(var(--drift) * 0.3)) translateY(25vh) rotate(calc(var(--spin) * 0.25)) scale(0.8);
+        }
+        50% {
+          transform: translateX(calc(var(--drift) * 0.6)) translateY(50vh) rotate(calc(var(--spin) * 0.5)) scale(0.7);
+          opacity: 0.7;
+        }
+        75% {
+          transform: translateX(calc(var(--drift) * 0.85)) translateY(75vh) rotate(calc(var(--spin) * 0.75)) scale(0.55);
+          opacity: 0.5;
         }
         100% {
           opacity: 0;
-          transform: translateX(var(--drift)) rotate(var(--spin)) scale(0.4);
-          top: 105vh;
+          transform: translateX(var(--drift)) translateY(110vh) rotate(var(--spin)) scale(0.3);
         }
       }
     </style>
 
     <script>
       const container = document.getElementById('sakura-container');
-      const PETAL_COUNT = 15;
-      const INTERVAL = 800;
+      const MAX_PETALS = 40;
+      let lastScrollY = window.scrollY;
+      let scrolling = false;
+      let scrollTimeout: ReturnType<typeof setTimeout>;
+      let petalCount = 0;
 
       function createPetal() {
-        if (!container) return;
+        if (!container || petalCount >= MAX_PETALS) return;
         const petal = document.createElement('div');
         petal.className = 'sakura-petal';
-        const size = 8 + Math.random() * 12;
+
+        const size = 8 + Math.random() * 14;
         const left = Math.random() * 100;
-        const duration = 6 + Math.random() * 6;
-        const drift = (Math.random() - 0.5) * 200;
-        const spin = 360 + Math.random() * 360;
+        const duration = 5 + Math.random() * 5;
+        const drift = (Math.random() - 0.5) * 250;
+        const spin = 180 + Math.random() * 540;
 
         petal.style.left = `${left}%`;
         petal.style.width = `${size}px`;
@@ -99,22 +114,35 @@ const { title, description = 'Cloud Solution Architect & EdTech Consultant — P
         petal.style.setProperty('--drift', `${drift}px`);
         petal.style.setProperty('--spin', `${spin}deg`);
         petal.style.animationDuration = `${duration}s`;
-        petal.style.animationDelay = `${Math.random() * 0.5}s`;
 
         container.appendChild(petal);
-        setTimeout(() => petal.remove(), (duration + 1) * 1000);
+        petalCount++;
+        setTimeout(() => { petal.remove(); petalCount--; }, duration * 1000);
       }
 
-      let created = 0;
-      const timer = setInterval(() => {
-        createPetal();
-        created++;
-        if (created >= PETAL_COUNT) {
-          clearInterval(timer);
-          // Continue with fewer petals for ambient effect
-          setInterval(createPetal, 2000);
+      function emitPetals(speed: number) {
+        // More petals for faster scrolling, scaled 1-5
+        const count = Math.min(5, Math.max(1, Math.ceil(speed / 80)));
+        for (let i = 0; i < count; i++) {
+          createPetal();
         }
-      }, INTERVAL);
+      }
+
+      window.addEventListener('scroll', () => {
+        const scrollY = window.scrollY;
+        const delta = Math.abs(scrollY - lastScrollY);
+        lastScrollY = scrollY;
+
+        if (delta > 2) {
+          emitPetals(delta);
+        }
+
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+          scrolling = false;
+        }, 150);
+        scrolling = true;
+      }, { passive: true });
     </script>
   </body>
 </html>
