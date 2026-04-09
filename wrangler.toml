@@ -1,4 +1,4 @@
-name = "portfolio"
+name = "cv"
 compatibility_date = "2026-03-29"
 main = "dist/_worker.js/index.js"
 
